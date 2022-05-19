@@ -85,10 +85,10 @@ fn main() {
       println!("{}", "An Error occured");
     }
   }
-  
 }
 
 
+// Renders the grid
 pub fn draw(grid: [[CellState; 3]; 3]) {
   print!("{esc}c", esc = 27 as char);
   println!("   1  2  3");
@@ -136,6 +136,7 @@ pub fn handle_input() -> String {
 }
 
 
+// Transforms user input into coordinates
 pub fn get_input_coord() -> Option<Coordinate> {
   let input = handle_input();
   
@@ -149,7 +150,10 @@ pub fn get_input_coord() -> Option<Coordinate> {
 }
 
 
+// Check all possible combinaisons in the grid
 pub fn check_win(grid: [[CellState; 3]; 3]) -> GameState {
+
+    let mut empty = 0u8;
 
     for x in 0..3 {
       for y in 0..3 {
@@ -160,12 +164,18 @@ pub fn check_win(grid: [[CellState; 3]; 3]) -> GameState {
           Coordinate { x: 1, y: 1 },
         ] {
 
+          let cell_state = grid[x as usize][y as usize];
+          if cell_state == CellState::None {
+            empty += 1;
+            continue;
+          }
+
           let state = check_into(
             Coordinate{x: x, y: y}, 
             direction,
             grid,
             0i8,
-            grid[x as usize][y as usize]
+            cell_state
           );
 
           if state != GameState::Run  { return state }
@@ -173,10 +183,14 @@ pub fn check_win(grid: [[CellState; 3]; 3]) -> GameState {
       } 
     }
 
+    // Check for tie 
+    if empty == 0 { return GameState::Tie };
+
     return GameState::Run;
 }
 
 
+// Search recursively in a direction, and return a state for the game
 pub fn check_into(current_coo: Coordinate, vec: Coordinate, grid: [[CellState; 3]; 3], count: i8, state: CellState) -> GameState {
   if state == CellState::None { return GameState::Run };
 
